@@ -22,5 +22,6 @@ import { UpdateBusinessUseCase } from "./application/use-cases/update-business.u
       useClass: InMemoryBusinessesRepository,
     },
   ],
+  exports: [BusinessesRepository],
 })
 export class BusinessModule {}
