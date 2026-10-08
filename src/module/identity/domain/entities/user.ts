@@ -3,9 +3,11 @@ import { AccountStatus } from "../enums/account-status.js";
 import { Permission } from "../enums/permission.js";
 import { rolePermissions, Role } from "../enums/role.js";
 import { UserValidationError } from "../errors/user-validation.error.js";
+import { createSlug } from "../../../../shared/utils/slug.js";
 
 export interface UserProps {
   id: string;
+  slug: string;
   email: string;
   phone?: string;
   name: string;
@@ -40,11 +42,13 @@ export class User {
 
   static create(input: CreateUserProps): User {
     const now = new Date();
+    const name = normalizeName(input.name);
     return new User({
       id: validateId(input.id ?? randomUUID()),
+      slug: createSlug(name),
       email: normalizeEmail(input.email),
       phone: normalizePhone(input.phone),
-      name: normalizeName(input.name),
+      name,
       status: input.status ?? AccountStatus.ACTIVE,
       roles: validateRoles(input.roles),
       createdAt: input.createdAt ?? now,
@@ -58,6 +62,10 @@ export class User {
 
   get email(): string {
     return this.props.email;
+  }
+
+  get slug(): string {
+    return this.props.slug;
   }
 
   get phone(): string | undefined {
@@ -86,6 +94,7 @@ export class User {
 
   changeName(name: string): void {
     this.props.name = normalizeName(name);
+    this.props.slug = createSlug(this.props.name);
     this.touch();
   }
 

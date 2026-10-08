@@ -8,6 +8,12 @@ export class InMemoryBusinessesRepository implements BusinessesRepository {
     return Promise.resolve(this.businesses.get(id) ?? null);
   }
 
+  findBySlug(slug: string): Promise<Business | null> {
+    return Promise.resolve(
+      [...this.businesses.values()].find((business) => business.slug === slug) ?? null,
+    );
+  }
+
   findAll(): Promise<Business[]> {
     return Promise.resolve([...this.businesses.values()]);
   }

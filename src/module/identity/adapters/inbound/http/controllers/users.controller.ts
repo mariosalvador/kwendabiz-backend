@@ -14,6 +14,7 @@ import {
 import { UserValidationError } from "../../../../domain/errors/user-validation.error.js";
 import { EmailAlreadyInUseError } from "../../../../application/errors/email-already-in-use.error.js";
 import { UserNotFoundError } from "../../../../application/errors/user-not-found.error.js";
+import { UserSlugAlreadyInUseError } from "../../../../application/errors/slug-already-in-use.error.js";
 import { CreateUserUseCase } from "../../../../application/use-cases/create-user.use-case.js";
 import { DeleteUserUseCase } from "../../../../application/use-cases/delete-user.use-case.js";
 import { GetUserUseCase } from "../../../../application/use-cases/get-user.use-case.js";
@@ -55,6 +56,15 @@ export class UsersController {
     }
   }
 
+  @Get("slug/:slug")
+  async getBySlug(@Param("slug") slug: string) {
+    try {
+      return (await this.getUser.executeBySlug(slug)).toJSON();
+    } catch (error) {
+      throw mapError(error);
+    }
+  }
+
   @Patch(":id")
   async update(@Param("id") id: string, @Body() body: UpdateUserDto) {
     try {
@@ -81,6 +91,9 @@ function mapError(error: unknown): Error {
   }
   if (error instanceof EmailAlreadyInUseError) {
     return new ConflictException(error instanceof Error ? error.message : "Email already in use");
+  }
+  if (error instanceof UserSlugAlreadyInUseError) {
+    return new ConflictException(error.message);
   }
   if (error instanceof UserValidationError) {
     return new ConflictException(error instanceof Error ? error.message : "Invalid user data");

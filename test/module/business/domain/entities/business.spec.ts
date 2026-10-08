@@ -23,6 +23,7 @@ describe("Business", () => {
 
     expect(business.toJSON()).toMatchObject({
       ...validInput,
+      slug: "kwenda-biz",
       email: "contact@kwenda.biz",
       links: [{ name: "Website", url: "https://kwenda.biz" }],
       bankDetails: {

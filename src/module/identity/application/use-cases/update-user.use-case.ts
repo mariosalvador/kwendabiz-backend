@@ -4,6 +4,8 @@ import { User } from "../../domain/entities/user.js";
 import { EmailAlreadyInUseError } from "../errors/email-already-in-use.error.js";
 import { UserNotFoundError } from "../errors/user-not-found.error.js";
 import { UsersRepository } from "../ports/repositories/users.repository.js";
+import { UserSlugAlreadyInUseError } from "../errors/slug-already-in-use.error.js";
+import { createSlug } from "../../../../shared/utils/slug.js";
 
 export interface UpdateUserInput {
   id: string;
@@ -31,6 +33,11 @@ export class UpdateUserUseCase {
       user.changeEmail(input.email);
     }
     if (input.name !== undefined) {
+      const slug = createSlug(input.name);
+      const existingUser = await this.usersRepository.findBySlug(slug);
+      if (existingUser && existingUser.id !== user.id) {
+        throw new UserSlugAlreadyInUseError(slug);
+      }
       user.changeName(input.name);
     }
     if (input.phone !== undefined) {

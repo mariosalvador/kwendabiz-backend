@@ -8,6 +8,12 @@ export class InMemoryUsersRepository implements UsersRepository {
     return Promise.resolve(this.users.get(id) ?? null);
   }
 
+  findBySlug(slug: string): Promise<User | null> {
+    return Promise.resolve(
+      [...this.users.values()].find((user) => user.slug === slug) ?? null,
+    );
+  }
+
   findByEmail(email: string): Promise<User | null> {
     const normalizedEmail = email.trim().toLowerCase();
     return Promise.resolve(

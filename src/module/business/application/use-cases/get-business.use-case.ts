@@ -13,6 +13,13 @@ export class GetBusinessUseCase {
     ensureCanManage(actor, business.ownerId);
     return business;
   }
+
+  async executeBySlug(actor: BusinessActor, slug: string): Promise<Business> {
+    const business = await this.businessesRepository.findBySlug(slug);
+    if (!business) throw new BusinessNotFoundError(slug);
+    ensureCanManage(actor, business.ownerId);
+    return business;
+  }
 }
 
 export function ensureCanManage(actor: BusinessActor, ownerId: string): void {

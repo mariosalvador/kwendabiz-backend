@@ -6,6 +6,7 @@ import {
   ForbiddenException,
   Get,
   HttpCode,
+  ConflictException,
   NotFoundException,
   Param,
   Patch,
@@ -24,6 +25,7 @@ import { GetBusinessUseCase } from "../../../../application/use-cases/get-busine
 import { ListBusinessesUseCase } from "../../../../application/use-cases/list-businesses.use-case.js";
 import { UpdateBusinessUseCase } from "../../../../application/use-cases/update-business.use-case.js";
 import { BusinessValidationError } from "../../../../domain/errors/business-validation.error.js";
+import { BusinessSlugAlreadyInUseError } from "../../../../application/errors/slug-already-in-use.error.js";
 import type { CreateBusinessDto, UpdateBusinessDto } from "../dto/business.dto.js";
 
 @Controller("businesses")
@@ -65,6 +67,18 @@ export class BusinessesController {
     }
   }
 
+  @Get("slug/:slug")
+  async getBySlug(
+    @CurrentUserDecorator() actor: CurrentUser,
+    @Param("slug") slug: string,
+  ) {
+    try {
+      return (await this.getBusiness.executeBySlug(actor, slug)).toJSON();
+    } catch (error) {
+      throw mapBusinessError(error);
+    }
+  }
+
   @Patch(":id")
   async update(
     @CurrentUserDecorator() actor: CurrentUser,
@@ -101,6 +115,9 @@ function mapBusinessError(error: unknown): Error {
   }
   if (error instanceof BusinessValidationError) {
     return new BadRequestException(error instanceof Error ? error.message : "Invalid business");
+  }
+  if (error instanceof BusinessSlugAlreadyInUseError) {
+    return new ConflictException(error.message);
   }
   return error instanceof Error ? error : new Error("Unexpected business error");
 }

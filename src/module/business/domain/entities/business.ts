@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { BusinessValidationError } from "../errors/business-validation.error.js";
+import { createSlug } from "../../../../shared/utils/slug.js";
 
 export interface BusinessLink {
   name: string;
@@ -14,6 +15,7 @@ export interface BankDetails {
 
 export interface BusinessProps {
   id: string;
+  slug: string;
   ownerId: string;
   name: string;
   category: string;
@@ -45,10 +47,12 @@ export class Business {
 
   static create(input: CreateBusinessProps): Business {
     const now = new Date();
+    const name = requiredText(input.name, "name");
     return new Business({
       id: input.id ?? randomUUID(),
+      slug: createSlug(name),
       ownerId: requiredText(input.ownerId, "ownerId"),
-      name: requiredText(input.name, "name"),
+      name,
       category: requiredText(input.category, "category"),
       phone: requiredText(input.phone, "phone"),
       email: input.email === undefined ? undefined : normalizeEmail(input.email),
@@ -64,6 +68,7 @@ export class Business {
 
   get id(): string { return this.props.id; }
   get ownerId(): string { return this.props.ownerId; }
+  get slug(): string { return this.props.slug; }
   get name(): string { return this.props.name; }
   get category(): string { return this.props.category; }
   get phone(): string { return this.props.phone; }
@@ -77,7 +82,10 @@ export class Business {
   get updatedAt(): Date { return new Date(this.props.updatedAt); }
 
   update(input: Partial<Omit<CreateBusinessProps, "ownerId" | "id" | "createdAt" | "updatedAt">>): void {
-    if (input.name !== undefined) this.props.name = requiredText(input.name, "name");
+    if (input.name !== undefined) {
+      this.props.name = requiredText(input.name, "name");
+      this.props.slug = createSlug(this.props.name);
+    }
     if (input.category !== undefined) this.props.category = requiredText(input.category, "category");
     if (input.phone !== undefined) this.props.phone = requiredText(input.phone, "phone");
     if (input.email !== undefined) this.props.email = normalizeEmail(input.email);

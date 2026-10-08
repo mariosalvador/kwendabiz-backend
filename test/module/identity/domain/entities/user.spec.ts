@@ -15,9 +15,22 @@ describe("User", () => {
 
     expect(user.email).toBe("user@example.com");
     expect(user.name).toBe("Mario Salvador");
+    expect(user.slug).toBe("mario-salvador");
     expect(user.phone).toBe("+351 900 000 000");
     expect(user.roles).toEqual([Role.Client]);
     expect(user.status).toBe(AccountStatus.ACTIVE);
+  });
+
+  it("updates the slug when the name changes", () => {
+    const user = User.create({
+      email: "user@example.com",
+      name: "Old Name",
+      roles: [Role.Client],
+    });
+
+    user.changeName("New Name");
+
+    expect(user.slug).toBe("new-name");
   });
 
   it.each([

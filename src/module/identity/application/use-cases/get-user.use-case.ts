@@ -12,4 +12,12 @@ export class GetUserUseCase {
     }
     return user;
   }
+
+  async executeBySlug(slug: string): Promise<User> {
+    const user = await this.usersRepository.findBySlug(slug);
+    if (!user) {
+      throw new UserNotFoundError(slug);
+    }
+    return user;
+  }
 }
