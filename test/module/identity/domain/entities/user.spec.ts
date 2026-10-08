@@ -10,12 +10,13 @@ describe("User", () => {
       email: "  USER@Example.COM ",
       name: "  Mario Salvador ",
       phone: " +351 900 000 000 ",
+      roles: [Role.Client],
     });
 
     expect(user.email).toBe("user@example.com");
     expect(user.name).toBe("Mario Salvador");
     expect(user.phone).toBe("+351 900 000 000");
-    expect(user.roles).toEqual([Role.User]);
+    expect(user.roles).toEqual([Role.Client]);
     expect(user.status).toBe(AccountStatus.ACTIVE);
   });
 
@@ -28,7 +29,11 @@ describe("User", () => {
   });
 
   it("manages roles and evaluates their permissions", () => {
-    const user = User.create({ email: "user@example.com", name: "User" });
+    const user = User.create({
+      email: "user@example.com",
+      name: "User",
+      roles: [Role.Client],
+    });
 
     expect(user.can(Permission.ManageUsers)).toBe(false);
     user.assignRole(Role.Admin);
@@ -36,12 +41,16 @@ describe("User", () => {
     expect(user.can(Permission.ManageUsers)).toBe(true);
 
     user.removeRole(Role.Admin);
-    expect(user.roles).toEqual([Role.User]);
-    expect(() => user.removeRole(Role.User)).toThrow(UserValidationError);
+    expect(user.roles).toEqual([Role.Client]);
+    expect(() => user.removeRole(Role.Client)).toThrow(UserValidationError);
   });
 
   it("changes account status through domain operations", () => {
-    const user = User.create({ email: "user@example.com", name: "User" });
+    const user = User.create({
+      email: "user@example.com",
+      name: "User",
+      roles: [Role.Client],
+    });
 
     user.suspend();
     expect(user.status).toBe(AccountStatus.SUSPENDED);

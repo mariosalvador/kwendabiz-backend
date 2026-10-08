@@ -19,7 +19,7 @@ export interface CreateUserProps {
   email: string;
   name: string;
   phone?: string;
-  roles?: readonly Role[];
+  roles: readonly Role[];
   status?: AccountStatus;
   id?: string;
   createdAt?: Date;
@@ -40,15 +40,13 @@ export class User {
 
   static create(input: CreateUserProps): User {
     const now = new Date();
-    const roles = input.roles ?? [Role.User];
-
     return new User({
       id: validateId(input.id ?? randomUUID()),
       email: normalizeEmail(input.email),
       phone: normalizePhone(input.phone),
       name: normalizeName(input.name),
       status: input.status ?? AccountStatus.ACTIVE,
-      roles: validateRoles(roles),
+      roles: validateRoles(input.roles),
       createdAt: input.createdAt ?? now,
       updatedAt: input.updatedAt ?? now,
     });
@@ -201,8 +199,8 @@ function normalizePhone(phone: string | undefined): string | undefined {
   return normalizedPhone;
 }
 
-function validateRoles(roles: readonly Role[]): Role[] {
-  if (roles.length === 0) {
+function validateRoles(roles: readonly Role[] | undefined): Role[] {
+  if (!roles || roles.length === 0) {
     throw new UserValidationError("A user must have at least one role");
   }
   if (roles.some((role) => !Object.values(Role).includes(role))) {

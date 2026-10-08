@@ -4,5 +4,5 @@ export interface CreateUserDto {
   email: string;
   name: string;
   phone?: string;
-  roles?: Role[];
+  roles: Role[];
 }

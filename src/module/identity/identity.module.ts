@@ -22,5 +22,6 @@ import { UsersRepository } from "./application/ports/repositories/users.reposito
       useClass: InMemoryUsersRepository,
     },
   ],
+  exports: [UsersRepository],
 })
 export class IdentityModule { }
