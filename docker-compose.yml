@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kwendabiz-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kwendabiz
+      POSTGRES_USER: kwendabiz
+      POSTGRES_PASSWORD: kwendabiz
+    ports:
+      - "5432:5432"
+    volumes:
+      - kwendabiz-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kwendabiz -d kwendabiz"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  kwendabiz-postgres-data:
