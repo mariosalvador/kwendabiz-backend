@@ -12,6 +12,7 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 import {
   CurrentUser as CurrentUserDecorator,
@@ -26,9 +27,11 @@ import { ListBusinessesUseCase } from "../../../../application/use-cases/list-bu
 import { UpdateBusinessUseCase } from "../../../../application/use-cases/update-business.use-case.js";
 import { BusinessValidationError } from "../../../../domain/errors/business-validation.error.js";
 import { BusinessSlugAlreadyInUseError } from "../../../../application/errors/slug-already-in-use.error.js";
-import type { CreateBusinessDto, UpdateBusinessDto } from "../dto/business.dto.js";
+import { CreateBusinessDto, UpdateBusinessDto } from "../dto/business.dto.js";
 
 @Controller("businesses")
+@ApiTags("Businesses")
+@ApiBearerAuth("access-token")
 export class BusinessesController {
   constructor(
     private readonly createBusiness: CreateBusinessUseCase,

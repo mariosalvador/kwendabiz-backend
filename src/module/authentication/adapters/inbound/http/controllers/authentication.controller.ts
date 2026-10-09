@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
   Post,
 } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 import { EmailAlreadyInUseError } from "../../../../../identity/application/errors/email-already-in-use.error.js";
 import { UserValidationError } from "../../../../../identity/domain/errors/user-validation.error.js";
@@ -20,10 +21,12 @@ import { VerifyContactUseCase } from "../../../../application/use-cases/verify-c
 import { Public } from "../decorators/public.decorator.js";
 import { CurrentUser as CurrentUserDecorator } from "../decorators/current-user.decorator.js";
 import type { CurrentUser } from "../decorators/current-user.decorator.js";
-import type { RegisterDto } from "../dto/register.dto.js";
-import type { VerifyContactDto } from "../dto/verify-contact.dto.js";
+import { RegisterDto } from "../dto/register.dto.js";
+import { VerifyContactDto } from "../dto/verify-contact.dto.js";
+import { LoginDto } from "../dto/login.dto.js";
 
 @Controller("auth")
+@ApiTags("Authentication")
 export class AuthenticationController {
   constructor(
     private readonly register: RegisterUseCase,
@@ -58,7 +61,7 @@ export class AuthenticationController {
 
   @Post("login")
   @Public()
-  async login(@Body() body: { email: string; password: string }) {
+  async login(@Body() body: LoginDto) {
     try {
       return await this.loginUseCase.execute(body);
     } catch (error) {
@@ -67,6 +70,7 @@ export class AuthenticationController {
   }
 
   @Get("me")
+  @ApiBearerAuth("access-token")
   me(@CurrentUserDecorator() user: CurrentUser): CurrentUser {
     return user;
   }

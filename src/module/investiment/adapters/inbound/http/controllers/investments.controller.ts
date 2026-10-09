@@ -7,6 +7,7 @@ import {
   Post,
   NotFoundException,
 } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 import {
   CurrentUser as CurrentUserDecorator,
@@ -17,9 +18,11 @@ import { InvestmentForbiddenError } from "../../../../application/errors/investm
 import { CreateInvestmentUseCase } from "../../../../application/use-cases/create-investment.use-case.js";
 import { ListMyInvestmentsUseCase } from "../../../../application/use-cases/list-my-investments.use-case.js";
 import { InvestmentValidationError } from "../../../../domain/errors/investment-validation.error.js";
-import type { CreateInvestmentDto } from "../dto/create-investment.dto.js";
+import { CreateInvestmentDto } from "../dto/create-investment.dto.js";
 
 @Controller("investments")
+@ApiTags("Investments")
+@ApiBearerAuth("access-token")
 export class InvestmentsController {
   constructor(
     private readonly createInvestment: CreateInvestmentUseCase,

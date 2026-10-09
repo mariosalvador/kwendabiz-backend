@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
 } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 import { UserValidationError } from "../../../../domain/errors/user-validation.error.js";
 import { EmailAlreadyInUseError } from "../../../../application/errors/email-already-in-use.error.js";
@@ -20,10 +21,12 @@ import { DeleteUserUseCase } from "../../../../application/use-cases/delete-user
 import { GetUserUseCase } from "../../../../application/use-cases/get-user.use-case.js";
 import { ListUsersUseCase } from "../../../../application/use-cases/list-users.use-case.js";
 import { UpdateUserUseCase } from "../../../../application/use-cases/update-user.use-case.js";
-import type { CreateUserDto } from "../dto/create-user.dto.js";
-import type { UpdateUserDto } from "../dto/update-user.dto.js";
+import { CreateUserDto } from "../dto/create-user.dto.js";
+import { UpdateUserDto } from "../dto/update-user.dto.js";
 
 @Controller("users")
+@ApiTags("Identity")
+@ApiBearerAuth("access-token")
 export class UsersController {
   constructor(
     private readonly createUser: CreateUserUseCase,
@@ -68,7 +71,7 @@ export class UsersController {
   @Patch(":id")
   async update(@Param("id") id: string, @Body() body: UpdateUserDto) {
     try {
-      return (await this.updateUser.execute({ id, ...body })).toJSON();
+      return (await this.updateUser.execute(Object.assign({ id }, body))).toJSON();
     } catch (error) {
       throw mapError(error);
     }
