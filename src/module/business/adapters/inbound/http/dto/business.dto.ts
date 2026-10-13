@@ -1,7 +1,39 @@
 import { PartialType, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { z } from "zod";
 import type { BankDetails, BusinessLink } from "../../../../domain/entities/business.js";
 
+export const businessLinkSchema = z.object({
+  name: z.string().trim().min(1, "Link name is required"),
+  url: z.string().trim().url("Link url must be a valid URL"),
+});
+
+export const bankDetailsSchema = z.object({
+  bankName: z.string().trim().min(1, "Bank name is required"),
+  iban: z
+    .string()
+    .trim()
+    .transform((val) => val.replace(/\s/g, "").toUpperCase())
+    .refine(
+      (val) => /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(val),
+      "A valid IBAN is required",
+    ),
+});
+
+export const createBusinessSchema = z.object({
+  name: z.string().trim().min(1, "Business name is required"),
+  category: z.string().trim().min(1, "Category is required"),
+  phone: z.string().trim().min(1, "Phone is required"),
+  email: z.string().trim().email("Invalid email").optional(),
+  links: z.array(businessLinkSchema).optional(),
+  logo: z.string().trim().optional(),
+  bankDetails: bankDetailsSchema.optional(),
+});
+
+export const updateBusinessSchema = createBusinessSchema.partial();
+
 export class BusinessLinkDto implements BusinessLink {
+  static readonly schema = businessLinkSchema;
+
   @ApiProperty({ example: "Website" })
   name: string;
   @ApiProperty({ example: "https://example.com" })
@@ -9,6 +41,8 @@ export class BusinessLinkDto implements BusinessLink {
 }
 
 export class BankDetailsDto implements BankDetails {
+  static readonly schema = bankDetailsSchema;
+
   @ApiProperty({ example: "Kwenda Bank" })
   bankName: string;
   @ApiProperty({ example: "PT50000201231234567890154" })
@@ -16,6 +50,8 @@ export class BankDetailsDto implements BankDetails {
 }
 
 export class CreateBusinessDto {
+  static readonly schema = createBusinessSchema;
+
   @ApiProperty({ example: "Kwenda Tech" })
   name: string;
   @ApiProperty({ example: "Technology" })
@@ -32,4 +68,6 @@ export class CreateBusinessDto {
   bankDetails?: BankDetailsDto;
 }
 
-export class UpdateBusinessDto extends PartialType(CreateBusinessDto) {}
+export class UpdateBusinessDto extends PartialType(CreateBusinessDto) {
+  static readonly schema = updateBusinessSchema;
+}

@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import { BusinessValidationError } from "../errors/business-validation.error.js";
 import { createSlug } from "../../../../shared/utils/slug.js";
+import { BankDetailsValue } from "../value-objects/bank-details.vo.js";
+import { BusinessEmail } from "../value-objects/business-email.vo.js";
+import { BusinessLinkValue } from "../value-objects/business-link.vo.js";
 
 export interface BusinessLink {
   name: string;
@@ -55,11 +58,11 @@ export class Business {
       name,
       category: requiredText(input.category, "category"),
       phone: requiredText(input.phone, "phone"),
-      email: input.email === undefined ? undefined : normalizeEmail(input.email),
+      email: BusinessEmail.create(input.email).value,
       links: validateLinks(input.links ?? []),
       logo: optionalText(input.logo),
       bankDetails: input.bankDetails
-        ? validateBankDetails(input.bankDetails)
+        ? BankDetailsValue.create(input.bankDetails).value
         : undefined,
       createdAt: input.createdAt ?? now,
       updatedAt: input.updatedAt ?? now,
@@ -88,11 +91,13 @@ export class Business {
     }
     if (input.category !== undefined) this.props.category = requiredText(input.category, "category");
     if (input.phone !== undefined) this.props.phone = requiredText(input.phone, "phone");
-    if (input.email !== undefined) this.props.email = normalizeEmail(input.email);
+    if (input.email !== undefined) this.props.email = BusinessEmail.create(input.email).value;
     if (input.links !== undefined) this.props.links = validateLinks(input.links);
     if (input.logo !== undefined) this.props.logo = optionalText(input.logo);
     if (input.bankDetails !== undefined) {
-      this.props.bankDetails = validateBankDetails(input.bankDetails);
+      this.props.bankDetails = input.bankDetails
+        ? BankDetailsValue.create(input.bankDetails).value
+        : undefined;
     }
     this.props.updatedAt = new Date();
   }
@@ -110,7 +115,7 @@ export class Business {
 
 function requiredText(value: string, field: string): string {
   const normalized = value.trim();
-  if (!normalized) throw new BusinessValidationError(`${field} is required`);
+  if (!normalized) throw BusinessValidationError.single(field, `${field} is required`);
   return normalized;
 }
 
@@ -120,32 +125,6 @@ function optionalText(value: string | undefined): string | undefined {
   return normalized || undefined;
 }
 
-function normalizeEmail(email: string): string {
-  const normalized = email.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
-    throw new BusinessValidationError("A valid email is required");
-  }
-  return normalized;
-}
-
 function validateLinks(links: readonly BusinessLink[]): BusinessLink[] {
-  return links.map((link) => {
-    const name = requiredText(link.name, "link name");
-    const url = requiredText(link.url, "link url");
-    try {
-      new URL(url);
-    } catch {
-      throw new BusinessValidationError("Link url must be a valid URL");
-    }
-    return { name, url };
-  });
-}
-
-function validateBankDetails(bankDetails: BankDetails): BankDetails {
-  const bankName = requiredText(bankDetails.bankName, "bank name");
-  const iban = requiredText(bankDetails.iban, "IBAN").replace(/\s/g, "").toUpperCase();
-  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) {
-    throw new BusinessValidationError("A valid IBAN is required");
-  }
-  return { bankName, iban };
+  return links.map((link) => BusinessLinkValue.create(link.name, link.url).value);
 }

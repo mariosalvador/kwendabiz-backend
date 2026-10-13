@@ -4,6 +4,11 @@ import { Permission } from "../enums/permission.js";
 import { rolePermissions, Role } from "../enums/role.js";
 import { UserValidationError } from "../errors/user-validation.error.js";
 import { createSlug } from "../../../../shared/utils/slug.js";
+import { Email } from "../value-objects/email.vo.js";
+import { PhoneNumber } from "../value-objects/phone.vo.js";
+import { UserId } from "../value-objects/user-id.vo.js";
+import { UserName } from "../value-objects/user-name.vo.js";
+import { UserRoles } from "../value-objects/user-roles.vo.js";
 
 export interface UserProps {
   id: string;
@@ -42,15 +47,20 @@ export class User {
 
   static create(input: CreateUserProps): User {
     const now = new Date();
-    const name = normalizeName(input.name);
+    const id = UserId.create(input.id ?? randomUUID()).value;
+    const name = UserName.create(input.name).value;
+    const email = Email.create(input.email).value;
+    const phone = PhoneNumber.create(input.phone).value;
+    const roles = UserRoles.create(input.roles).value;
+
     return new User({
-      id: validateId(input.id ?? randomUUID()),
+      id,
       slug: createSlug(name),
-      email: normalizeEmail(input.email),
-      phone: normalizePhone(input.phone),
+      email,
+      phone,
       name,
       status: input.status ?? AccountStatus.ACTIVE,
-      roles: validateRoles(input.roles),
+      roles,
       createdAt: input.createdAt ?? now,
       updatedAt: input.updatedAt ?? now,
     });
@@ -93,29 +103,29 @@ export class User {
   }
 
   changeName(name: string): void {
-    this.props.name = normalizeName(name);
+    this.props.name = UserName.create(name).value;
     this.props.slug = createSlug(this.props.name);
     this.touch();
   }
 
   changeEmail(email: string): void {
-    this.props.email = normalizeEmail(email);
+    this.props.email = Email.create(email).value;
     this.touch();
   }
 
   setPhone(phone: string): void {
-    this.props.phone = normalizePhone(phone);
+    this.props.phone = PhoneNumber.create(phone).value;
     this.touch();
   }
 
   replaceRoles(roles: readonly Role[]): void {
-    this.props.roles = validateRoles(roles);
+    this.props.roles = UserRoles.create(roles).value;
     this.touch();
   }
 
   assignRole(role: Role): void {
     if (!Object.values(Role).includes(role)) {
-      throw new UserValidationError(`Invalid role: ${role}`);
+      throw UserValidationError.single("role", `Invalid role: ${role}`);
     }
     if (!this.props.roles.includes(role)) {
       this.props.roles = [...this.props.roles, role];
@@ -125,7 +135,7 @@ export class User {
 
   removeRole(role: Role): void {
     if (this.props.roles.length === 1 && this.props.roles.includes(role)) {
-      throw new UserValidationError("A user must have at least one role");
+      throw UserValidationError.single("role", "A user must have at least one role");
     }
     this.props.roles = this.props.roles.filter((currentRole) => currentRole !== role);
     this.touch();
@@ -171,52 +181,4 @@ export class User {
   private touch(): void {
     this.props.updatedAt = new Date();
   }
-}
-
-function normalizeEmail(email: string): string {
-  const normalizedEmail = email.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-    throw new UserValidationError("A valid email is required");
-  }
-  return normalizedEmail;
-}
-
-function validateId(id: string): string {
-  const normalizedId = id.trim();
-  if (normalizedId.length === 0) {
-    throw new UserValidationError("A user id is required");
-  }
-  return normalizedId;
-}
-
-function normalizeName(name: string): string {
-  const normalizedName = name.trim();
-  if (normalizedName.length === 0) {
-    throw new UserValidationError("A name is required");
-  }
-  return normalizedName;
-}
-
-function normalizePhone(phone: string | undefined): string | undefined {
-  if (phone === undefined) {
-    return undefined;
-  }
-  const normalizedPhone = phone.trim();
-  if (normalizedPhone.length === 0) {
-    throw new UserValidationError("Phone cannot be empty");
-  }
-  return normalizedPhone;
-}
-
-function validateRoles(roles: readonly Role[] | undefined): Role[] {
-  if (!roles || roles.length === 0) {
-    throw new UserValidationError("A user must have at least one role");
-  }
-  if (roles.some((role) => !Object.values(Role).includes(role))) {
-    throw new UserValidationError("All user roles must be valid");
-  }
-  if (new Set(roles).size !== roles.length) {
-    throw new UserValidationError("A user cannot have duplicate roles");
-  }
-  return [...roles];
 }

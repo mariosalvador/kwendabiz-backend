@@ -3,7 +3,7 @@ import { Module } from "@nestjs/common";
 import { AuthenticationModule } from "../module/authentication/auth.module.js";
 import { BusinessModule } from "../module/business/business.module.js";
 import { IdentityModule } from "../module/identity/identity.module.js";
-import { InvestimentModule } from "../module/investiment/investiment.module.js";
+import { InvestmentModule } from "../module/investment/investment.module.js";
 import { DatabaseModule } from "../shared/database/database.module.js";
 
 @Module({
@@ -12,7 +12,7 @@ import { DatabaseModule } from "../shared/database/database.module.js";
     IdentityModule,
     AuthenticationModule,
     BusinessModule,
-    InvestimentModule,
+    InvestmentModule,
   ],
 })
 export class AppModule {}

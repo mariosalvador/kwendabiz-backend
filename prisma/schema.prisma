@@ -7,14 +7,33 @@ datasource db {
   provider = "postgresql"
 }
 
+enum AccountStatus {
+  ACTIVE    @map("active")
+  INACTIVE  @map("inactive")
+  PENDING   @map("pending")
+  SUSPENDED @map("suspended")
+}
+
+enum Role {
+  CLIENT       @map("client")
+  INVESTOR     @map("investor")
+  ENTREPRENEUR @map("entrepreneur")
+  ADMIN        @map("admin")
+}
+
+enum VerificationChannel {
+  EMAIL @map("email")
+  PHONE @map("phone")
+}
+
 model User {
   id            String         @id
   slug          String         @unique
   email         String         @unique
   phone         String?
   name          String
-  status        String
-  roles         String[]
+  status        AccountStatus  @default(PENDING)
+  roles         Role[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   credential    Credential?
@@ -34,13 +53,13 @@ model Credential {
 }
 
 model Verification {
-  id         String    @id
+  id         String              @id
   userId     String
-  channel    String
+  channel    VerificationChannel
   token      String
   expiresAt  DateTime
   verifiedAt DateTime?
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
